@@ -79,60 +79,33 @@ AppError (abstract base)
 ### Base Error Class
 
 ```dart
-class AppException implements Exception {
+abstract class AppError implements Exception {
   final String message;
   final String? code;
-  final dynamic stackTrace;
+  final StackTrace? stackTrace;
 
-  AppException(this.message, {this.code, this.stackTrace});
+  AppError(this.message, {this.code, this.stackTrace});
 
   @override
-  String toString() => 'AppException: $code - $message';
+  String toString() => 'AppError: $code - $message';
 }
 ```
 
-### Specific Error Types
+### More Specific Network Error
 
 ```dart
-class NetworkException extends AppException {
+class NetworkError extends AppError {
   final int? statusCode;
-  NetworkException(String message, {
-    String? code,
+
+  NetworkError(String message, {
     this.statusCode,
-    dynamic stackTrace,
+    String? code,
+    StackTrace? stackTrace,
   }) : super(message, code: code ?? 'NETWORK_ERROR', stackTrace: stackTrace);
 
   @override
-  String toString() => 'NetworkException: $code - $message (Status: $statusCode)';
+  String toString() => 'NetworkError: $code - $message (Status: $statusCode)';
 }
-
-class AuthException extends AppException {
-  AuthException(String message, {
-    String? code,
-    dynamic stackTrace,
-  }) : super(message, code: code ?? 'AUTH_ERROR', stackTrace: stackTrace);
-}
-
-class DatabaseException extends AppException {
-  DatabaseException(String message, {
-    String? code,
-    dynamic stackTrace,
-  }) : super(message, code: code ?? 'DB_ERROR', stackTrace: stackTrace);
-}
-
-class ValidationException extends AppException {
-  final Map<String, String>? fieldErrors;
-  ValidationException(String message, {
-    this.fieldErrors,
-    String? code,
-    dynamic stackTrace,
-  }) : super(message, code: code ?? 'VALIDATION_ERROR', stackTrace: stackTrace);
-}
-```
-
-### More Specific Network Exceptions
-
-```dart
 class ServerException extends NetworkException {
   ServerException(String message, {
     int? statusCode,
@@ -154,6 +127,36 @@ class ConnectionException extends NetworkException {
              stackTrace: stackTrace);
 }
 ```
+### Domain Specific Errors
+
+```dart
+class AuthException extends AppException {
+  AuthException(String message, {
+    String? code,
+    dynamic stackTrace,
+  }) : super(message, code: code ?? 'AUTH_ERROR', stackTrace: stackTrace);
+}
+
+class DatabaseException extends AppException {
+  DatabaseException(String message, {
+    String? code,
+    dynamic stackTrace,
+  }) : super(message, code: code ?? 'DB_ERROR', stackTrace: stackTrace);
+}
+```
+
+### Validation error
+
+```dart
+class ValidationException extends AppException {
+  final Map<String, String>? fieldErrors;
+  ValidationException(String message, {
+    this.fieldErrors,
+    String? code,
+    dynamic stackTrace,
+  }) : super(message, code: code ?? 'VALIDATION_ERROR', stackTrace: stackTrace);
+}
+```dart
 
 ---
 
@@ -265,43 +268,56 @@ Future<void> loadUserData(String userId) async {
 ## Centralized Error Handler
 
 ```dart
+import 'package:logger/logger.dart';
+
+final logger = Logger();
+
 class ErrorHandler {
   static void handle(Object error, {StackTrace? stackTrace}) {
     _logError(error, stackTrace);
-
-    if (error is ValidationException) {
-      _handleValidationError(error);
-    } else if (error is AuthException) {
-      _handleAuthError(error);
-    } else if (error is NetworkException) {
-      _handleNetworkError(error);
-    } else if (error is AppException) {
-      _handleAppError(error);
-    } else {
-      _handleUnknownError(error);
+    switch (error.runtimeType) {
+      case ValidationError:
+        _handleValidationError(error as ValidationError);
+        break;
+      case AuthError:
+        _handleAuthError(error as AuthError);
+        break;
+      case NetworkError:
+        _handleNetworkError(error as NetworkError);
+        break;
+      case AppError:
+        _handleAppError(error as AppError);
+        break;
+      default:
+        _handleUnknownError(error);
     }
   }
 
   static void _logError(Object error, StackTrace? stackTrace) {
-    print('ERROR: $error');
-    if (stackTrace != null) print(stackTrace);
+    logger.e('Unhandled Error', error, stackTrace);
   }
 
-  static void _handleValidationError(ValidationException error) =>
-      print('Handling validation error: ${error.message}');
+  static void _handleValidationError(ValidationError error) {
+    logger.w('Validation: ${error.message}');
+  }
 
-  static void _handleAuthError(AuthException error) =>
-      print('Handling auth error: ${error.message}');
+  static void _handleAuthError(AuthError error) {
+    logger.w('Auth: ${error.message}');
+  }
 
-  static void _handleNetworkError(NetworkException error) =>
-      print('Handling network error: ${error.message}');
+  static void _handleNetworkError(NetworkError error) {
+    logger.w('Network: ${error.message}');
+  }
 
-  static void _handleAppError(AppException error) =>
-      print('Handling application error: ${error.message}');
+  static void _handleAppError(AppError error) {
+    logger.w('App: ${error.message}');
+  }
 
-  static void _handleUnknownError(Object error) =>
-      print('Handling unknown error: $error');
+  static void _handleUnknownError(Object error) {
+    logger.w('Unknown error: $error');
+  }
 }
+
 ```
 
 ---
