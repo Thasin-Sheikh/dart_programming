@@ -106,8 +106,8 @@ class NetworkError extends AppError {
   @override
   String toString() => 'NetworkError: $code - $message (Status: $statusCode)';
 }
-class ServerException extends NetworkException {
-  ServerException(String message, {
+class ServerError extends NetworkError {
+  ServerError(String message, {
     int? statusCode,
     String? code,
     dynamic stackTrace,
@@ -117,8 +117,8 @@ class ServerException extends NetworkException {
              stackTrace: stackTrace);
 }
 
-class ConnectionException extends NetworkException {
-  ConnectionException(String message, {
+class ConnectionError extends NetworkError {
+  ConnectionError(String message, {
     String? code,
     dynamic stackTrace,
   }) : super(message,
@@ -130,15 +130,15 @@ class ConnectionException extends NetworkException {
 ### Domain Specific Errors
 
 ```dart
-class AuthException extends AppException {
-  AuthException(String message, {
+class AuthError extends AppError {
+  AuthError(String message, {
     String? code,
     dynamic stackTrace,
   }) : super(message, code: code ?? 'AUTH_ERROR', stackTrace: stackTrace);
 }
 
-class DatabaseException extends AppException {
-  DatabaseException(String message, {
+class DatabaseError extends AppError {
+  DatabaseError(String message, {
     String? code,
     dynamic stackTrace,
   }) : super(message, code: code ?? 'DB_ERROR', stackTrace: stackTrace);
@@ -156,13 +156,12 @@ class ValidationException extends AppException {
     dynamic stackTrace,
   }) : super(message, code: code ?? 'VALIDATION_ERROR', stackTrace: stackTrace);
 }
-```dart
+```
 
 ---
 
-## Throwing and Catching Custom Exceptions
 
-### Throwing Custom Exceptions
+### Throwing and Catching Custom Error
 
 ```dart
 Future<Map<String, dynamic>> fetchData(String url) async {
