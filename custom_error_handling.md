@@ -69,9 +69,9 @@ Creating your own error hierarchy offers several benefits:
   - Standardized properties (`message`, `code`, `stackTrace`, etc.)
 
 - **Improved Debugging and Maintenance**  
-  - More context
-  - Preserved stack traces
-  - Clear categorization
+  - More context about what went wrong and why
+  - Preserved stack traces and error chains
+  - Clear categorization of error sources
 
 ---
 
@@ -258,7 +258,7 @@ Future<void> loadUserData(String userId) async {
   try {
     final userData = await fetchUserFromDatabase(userId);
     processUserData(userData);
-  } on DatabaseException catch (e) {
+  } on DatabaseError catch (e) {
     print('Database error: ${e.message}');
   } catch (e) {
     print('Unknown error: $e');
