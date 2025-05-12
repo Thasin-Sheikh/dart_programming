@@ -19,6 +19,7 @@ Dart has two main categories of errors:
 - **Errors**: Represent serious program failures and implement the `Error` interface. They usually indicate bugs that should be fixed rather than caught.
 
 ### Example of Built-in Error Handling
+Before we create our own error hierarchy, let's understand what Dart provides out of the box:
 
 ```dart
 try {
@@ -55,6 +56,7 @@ AppError (abstract base)
 ---
 
 ## Why Build a Custom Error Hierarchy?
+Creating your own error hierarchy offers several benefits:
 
 - **Granular Type-Safe Handling**  
   - Catch specific error types
@@ -76,6 +78,7 @@ AppError (abstract base)
 ## Building an Error Hierarchy in Dart
 
 ### Base Error Class
+Dart's support for class inheritance makes it perfect for creating a structured error hierarchy. Let's start by creating a base error class:
 
 ```dart
 abstract class AppError implements Exception {
@@ -161,6 +164,7 @@ class ValidationError extends AppError {
 
 
 ### Throwing and Catching Custom Error
+Now that we have our error hierarchy, let's look at how to use it effectively in Dart applications.
 
 ```dart
 Future<Map<String, dynamic>> fetchData(String url) async {
@@ -190,7 +194,8 @@ Future<Map<String, dynamic>> fetchData(String url) async {
 }
 ```
 
-### Catching and Handling Exceptions
+### Catching and Handling Error
+Here's how you can handle different error types:
 
 ```dart
 void main() async {
@@ -232,6 +237,7 @@ void retry() => print('Retrying operation...');
 ## Best Practices
 
 ### 1. Using `rethrow` for Error Propagation
+The rethrow statement is useful when you want to catch an exception, perform some action, but still propagate the exception up the call stack.
 
 ```dart
 Future<void> processData(String data) async {
@@ -245,6 +251,7 @@ Future<void> processData(String data) async {
 ```
 
 ### 2. Async Error Handling with `try-catch-finally`
+When working with asynchronous code in Dart, error handling works the same way as with synchronous code:
 
 ```dart
 Future<void> loadUserData(String userId) async {
@@ -264,6 +271,7 @@ Future<void> loadUserData(String userId) async {
 ---
 
 ## Centralized Error Handler
+For more complex applications, you might want to implement a centralized error handler:
 
 ```dart
 import 'package:logger/logger.dart';
