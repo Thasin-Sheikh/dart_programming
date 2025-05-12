@@ -50,7 +50,6 @@ AppError (abstract base)
 │   └── StorageError
 └── BusinessError
     ├── UnauthorizedError
-    └── PaymentRequiredError
 ```
 
 ---
@@ -120,7 +119,7 @@ class ServerError extends NetworkError {
 class ConnectionError extends NetworkError {
   ConnectionError(String message, {
     String? code,
-    dynamic stackTrace,
+    StackTrace stackTrace,
   }) : super(message,
              statusCode: null,
              code: code ?? 'CONNECTION_ERROR',
@@ -133,14 +132,14 @@ class ConnectionError extends NetworkError {
 class AuthError extends AppError {
   AuthError(String message, {
     String? code,
-    dynamic stackTrace,
+    StackTrace stackTrace,
   }) : super(message, code: code ?? 'AUTH_ERROR', stackTrace: stackTrace);
 }
 
 class DatabaseError extends AppError {
   DatabaseError(String message, {
     String? code,
-    dynamic stackTrace,
+    StackTrace stackTrace,
   }) : super(message, code: code ?? 'DB_ERROR', stackTrace: stackTrace);
 }
 ```
@@ -148,12 +147,12 @@ class DatabaseError extends AppError {
 ### Validation error
 
 ```dart
-class ValidationException extends AppException {
+class ValidationError extends AppError {
   final Map<String, String>? fieldErrors;
-  ValidationException(String message, {
+  ValidationError(String message, {
     this.fieldErrors,
     String? code,
-    dynamic stackTrace,
+    StackTrace stackTrace,
   }) : super(message, code: code ?? 'VALIDATION_ERROR', stackTrace: stackTrace);
 }
 ```
@@ -167,24 +166,24 @@ class ValidationException extends AppException {
 Future<Map<String, dynamic>> fetchData(String url) async {
   try {
     if (url.isEmpty) {
-      throw ValidationException('URL cannot be empty');
+      throw ValidationError('URL cannot be empty');
     }
     if (!url.startsWith('https://')) {
-      throw ValidationException('URL must use HTTPS protocol');
+      throw ValidationError('URL must use HTTPS protocol');
     }
     if (url.contains('offline')) {
-      throw ConnectionException('Failed to connect to server');
+      throw ConnectionError('Failed to connect to server');
     }
     if (url.contains('private')) {
-      throw AuthException('Not authorized to access this resource');
+      throw AuthError'Not authorized to access this resource');
     }
     if (url.contains('error')) {
-      throw ServerException('Internal server error', statusCode: 500);
+      throw ServerError('Internal server error', statusCode: 500);
     }
     return {'status': 'success', 'data': 'Some data'};
   } catch (e) {
-    if (e is! AppException) {
-      throw AppException('Unexpected error: ${e.toString()}');
+    if (e is! AppError) {
+      throw AppError('Unexpected error: ${e.toString()}');
     }
     rethrow;
   }
@@ -198,25 +197,25 @@ void main() async {
   try {
     final data = await fetchData('https://api.example.com/data');
     print('Received data: $data');
-  } on ValidationException catch (e) {
+  } on ValidationError catch (e) {
     print('Validation error: ${e.message}');
     if (e.fieldErrors != null) {
       for (final entry in e.fieldErrors!.entries) {
         print('- ${entry.key}: ${entry.value}');
       }
     }
-  } on AuthException catch (e) {
+  } on AuthError catch (e) {
     print('Authentication error: ${e.message}');
     login();
-  } on ConnectionException catch (e) {
+  } on ConnectionError catch (e) {
     print('Connection error: ${e.message}');
     checkNetworkConnection();
-  } on NetworkException catch (e) {
+  } on NetworkError catch (e) {
     print('Network error (${e.statusCode}): ${e.message}');
     if (e.statusCode == 500) {
       retry();
     }
-  } on AppException catch (e) {
+  } on AppError catch (e) {
     print('Application error: ${e.message}');
   } catch (e) {
     print('Unknown error: $e');
