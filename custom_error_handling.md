@@ -57,17 +57,17 @@ AppError (abstract base)
 
 ## Why Build a Custom Error Hierarchy?
 
-- ✅ **Granular Type-Safe Handling**  
+-  **Granular Type-Safe Handling**  
   - Catch specific error types
   - Handle them differently
   - Group related errors logically
 
-- ✅ **Consistent Structured Errors**  
+-  **Consistent Structured Errors**  
   - Same design pattern for all errors
   - Include relevant context in each error
   - Standardized properties (`message`, `code`, `stackTrace`, etc.)
 
-- ✅ **Improved Debugging and Maintenance**  
+-  **Improved Debugging and Maintenance**  
   - More context
   - Preserved stack traces
   - Clear categorization
