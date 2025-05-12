@@ -307,6 +307,7 @@ class ErrorHandler {
 ---
 
 ## Zone-Based Error Handling
+Zones are useful for isolating **uncaught errors**, especially in Flutter apps, CLI tools, or isolates. They can catch any unhandled error globally and report/log them centrally.
 
 ```dart
 import 'dart:async';
