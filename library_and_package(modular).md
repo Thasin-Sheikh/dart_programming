@@ -65,6 +65,16 @@ void main() {
 ---
 
 ## Library Directives
+Dart provides several directives to manage dependencies and visibility. These are powerful but should be used judiciously:
+
+- **`part`/`part of`**:  
+  Can make code harder to maintain if overused. Use sparingly.
+
+- **`export`**:  
+  Useful for creating facade libraries that simplify APIs.
+
+- **Prefixes (`as`)**:  
+  Essential when dealing with conflicting names.
 
 ### 1. `import`
 Import libraries from:
