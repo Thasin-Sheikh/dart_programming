@@ -34,6 +34,22 @@ try {
 
 ## Custom Error Hierarchy
 
+```plaintext
+AppError (abstract base)
+├── NetworkError
+│   ├── NoConnectionError
+│   ├── TimeoutError
+│   └── ApiError
+├── DataError
+│   ├── NotFoundError
+│   ├── ValidationError
+│   └── StorageError
+└── BusinessError
+    ├── UnauthorizedError
+```
+
+---
+
 ### Why Build a Custom Error Hierarchy?
 
 কাস্টম এরর হায়ারার্কি তৈরি করার কিছু সুবিধা রয়েছে:
@@ -98,6 +114,7 @@ class ValidationError extends AppError {
 }
 ```
 
+
 ### Best Practices
 
 1. Using `rethrow` for Error Propagation
@@ -128,14 +145,162 @@ Future<void> loadUserData(String userId) async {
 }
 ```
 
+---
+### Throwing and Catching Custom Error
+এখন যেহেতু আমাদের এরর হায়ারার্কি তৈরি হয়ে গেছে, আসুন দেখি ডার্ট অ্যাপ্লিকেশনগুলিতে এটি কীভাবে আরও ভালোভাবে কাজে লাগানো যায়.
+
+```dart
+Future<Map<String, dynamic>> fetchData(String url) async {
+  try {
+    if (url.isEmpty) {
+      throw ValidationError('URL cannot be empty');
+    }
+    if (!url.startsWith('https://')) {
+      throw ValidationError('URL must use HTTPS protocol');
+    }
+    if (url.contains('offline')) {
+      throw ConnectionError('Failed to connect to server');
+    }
+    if (url.contains('private')) {
+      throw AuthError'Not authorized to access this resource');
+    }
+    if (url.contains('error')) {
+      throw ServerError('Internal server error', statusCode: 500);
+    }
+    return {'status': 'success', 'data': 'Some data'};
+  } catch (e) {
+    if (e is! AppError) {
+      throw AppError('Unexpected error: ${e.toString()}');
+    }
+    rethrow;
+  }
+}
+```
+
+### Catching and Handling Error
+যেভাবে আপনি বিভিন্ন ধরনের এরর হ্যান্ডেল করতে পারেন:
+
+```dart
+void main() async {
+  try {
+    final data = await fetchData('https://api.example.com/data');
+    print('Received data: $data');
+  } on ValidationError catch (e) {
+    print('Validation error: ${e.message}');
+    if (e.fieldErrors != null) {
+      for (final entry in e.fieldErrors!.entries) {
+        print('- ${entry.key}: ${entry.value}');
+      }
+    }
+  } on AuthError catch (e) {
+    print('Authentication error: ${e.message}');
+    login();
+  } on ConnectionError catch (e) {
+    print('Connection error: ${e.message}');
+    checkNetworkConnection();
+  } on NetworkError catch (e) {
+    print('Network error (${e.statusCode}): ${e.message}');
+    if (e.statusCode == 500) {
+      retry();
+    }
+  } on AppError catch (e) {
+    print('Application error: ${e.message}');
+  } catch (e) {
+    print('Unknown error: $e');
+  }
+}
+
+void login() => print('Redirecting to login...');
+void checkNetworkConnection() => print('Checking network connection...');
+void retry() => print('Retrying operation...');
+```
+
+---
+
+## Centralized Error Handler
+বড় অ্যাপ্লিকেশনগুলোর জন্য centralized error handler তৈরি করা যেতে পারে:
+
+```dart
+import 'package:logger/logger.dart';
+
+final logger = Logger();
+
+class ErrorHandler {
+  static void handle(Object error, {StackTrace? stackTrace}) {
+    _logError(error, stackTrace);
+    switch (error.runtimeType) {
+      case ValidationError:
+        _handleValidationError(error as ValidationError);
+        break;
+      case AuthError:
+        _handleAuthError(error as AuthError);
+        break;
+      case NetworkError:
+        _handleNetworkError(error as NetworkError);
+        break;
+      case AppError:
+        _handleAppError(error as AppError);
+        break;
+      default:
+        _handleUnknownError(error);
+    }
+  }
+
+  static void _logError(Object error, StackTrace? stackTrace) {
+    logger.e('Unhandled Error', error, stackTrace);
+  }
+
+  static void _handleValidationError(ValidationError error) {
+    logger.w('Validation: ${error.message}');
+  }
+
+  static void _handleAuthError(AuthError error) {
+    logger.w('Auth: ${error.message}');
+  }
+
+  static void _handleNetworkError(NetworkError error) {
+    logger.w('Network: ${error.message}');
+  }
+
+  static void _handleAppError(AppError error) {
+    logger.w('App: ${error.message}');
+  }
+
+  static void _handleUnknownError(Object error) {
+    logger.w('Unknown error: $error');
+  }
+}
+
+```
+
+---
+
+## Zone-Based Error Handling
+Zones মূলত **uncaught errors** isolate করার জন্য ব্যবহার করা হয়, বিশেষ করে Flutter অ্যাপ, CLI tools বা isolates এ। এগুলো যেকোনো unhandled error গ্লোবালি ধরতে পারে এবং কেন্দ্রীয়ভাবে রিপোর্ট বা লগ করতে পারে।
+
+```dart
+import 'dart:async';
+
+void main() {
+  runZonedGuarded(() {
+    throw Exception('Unhandled exception');
+  }, (error, stackTrace) {
+    print('Caught error in zone: $error');
+    print(stackTrace);
+    ErrorHandler.handle(error, stackTrace: stackTrace);
+  });
+}
+```
+
+---
+
 ## Conclusion
+Dart-এ কাস্টম error hierarchy তৈরি করলে কোডের organization উন্নত হয়, debugging সহজ হয় এবং developer experience বাড়ে।
 
-ডার্টে কাস্টম এরর হায়ারার্কি তৈরি করলে কোডের সংগঠন উন্নত হয়, ডিবাগিং সহজ হয়, এবং ডেভেলপারদের জন্য ব্যবহারযোগ্যতা বৃদ্ধি পায়।
+structured error handling-এর মাধ্যমে আপনি:
 
-একটি সুষ্ঠু এরর হ্যান্ডলিং পদ্ধতি:
-
-- বিভিন্ন এরর পরিস্থিতিতে উপযুক্ত প্রতিক্রিয়া প্রদানের সুযোগ দেয়
-- স্পষ্ট পুনরুদ্ধার পথ তৈরি করে
-- রক্ষণাবেক্ষণ ও সামঞ্জস্যতা বাড়ায়
-
-মনে রাখবেন, ভালো এরর হ্যান্ডলিং শুধুমাত্র এক্সেপশন ধরে রাখা নয়, এটি এমন একটি ব্যবস্থা তৈরি করা যা সৃষ্টিশীল উপায়ে ব্যর্থতা সামলাতে পারে এবং সমস্যা সম্পর্কে পরিষ্কার তথ্য প্রদান করতে পারে।
+- বিভিন্ন error scenario-এ সঠিকভাবে প্রতিক্রিয়া জানাতে পারবেন
+- recovery path স্পষ্ট করতে পারবেন
+- maintainability ও consistency বাড়াতে পারবেন
+  
+মনে রাখবেন, ভালো error handling মানে শুধু exception ধরা নয়—এটি এমন একটি ব্যবস্থা তৈরি করা যা gracefully failure handle করে এবং কী ভুল হয়েছে তা স্পষ্ট ভাবে জানায়।
