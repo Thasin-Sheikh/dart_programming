@@ -114,38 +114,6 @@ class ValidationError extends AppError {
 }
 ```
 
-
-### Best Practices
-
-1. Using `rethrow` for Error Propagation
-
-```dart
-Future<void> processData(String data) async {
-  try {
-    await parseData(data);
-  } catch (e) {
-    print('ডেটা প্রসেসিংয়ে এরর: $e');
-    rethrow;
-  }
-}
-```
-
-2. Async Error Handling with try-catch-finally
-
-```dart
-Future<void> loadUserData(String userId) async {
-  try {
-    final userData = await fetchUserFromDatabase(userId);
-    processUserData(userData);
-  } catch (e) {
-    print('অজানা এরর: $e');
-  } finally {
-    closeConnection();
-  }
-}
-```
-
----
 ### Throwing and Catching Custom Error
 এখন যেহেতু আমাদের এরর হায়ারার্কি তৈরি হয়ে গেছে, আসুন দেখি ডার্ট অ্যাপ্লিকেশনগুলিতে এটি কীভাবে আরও ভালোভাবে কাজে লাগানো যায়.
 
@@ -216,6 +184,40 @@ void retry() => print('Retrying operation...');
 ```
 
 ---
+
+
+### Best Practices
+
+1. Using `rethrow` for Error Propagation
+
+```dart
+Future<void> processData(String data) async {
+  try {
+    await parseData(data);
+  } catch (e) {
+    print('ডেটা প্রসেসিংয়ে এরর: $e');
+    rethrow;
+  }
+}
+```
+
+2. Async Error Handling with try-catch-finally
+
+```dart
+Future<void> loadUserData(String userId) async {
+  try {
+    final userData = await fetchUserFromDatabase(userId);
+    processUserData(userData);
+  } catch (e) {
+    print('অজানা এরর: $e');
+  } finally {
+    closeConnection();
+  }
+}
+```
+
+---
+
 
 ## Centralized Error Handler
 বড় অ্যাপ্লিকেশনগুলোর জন্য centralized error handler তৈরি করা যেতে পারে:
