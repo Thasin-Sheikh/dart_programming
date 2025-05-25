@@ -43,25 +43,6 @@ try {
   // Handle any other thrown object
 }
 ```
-
----
-
-## Custom Error Hierarchy
-
-```plaintext
-AppError (abstract base)
-├── NetworkError
-│   ├── NoConnectionError
-│   ├── TimeoutError
-│   └── ApiError
-├── DataError
-│   ├── NotFoundError
-│   ├── ValidationError
-│   └── StorageError
-└── BusinessError
-    ├── UnauthorizedError
-```
-
 ---
 
 ## Why we need a Custom Error Hierarchy?
