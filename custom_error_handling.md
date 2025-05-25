@@ -265,8 +265,6 @@ In a real-world mobile application, not all errors should be treated the same wa
 ### 1. Using `rethrow` for Error Propagation
 The rethrow statement is useful when you want to catch an exception, perform some action, but still propagate the exception up the call stack.
 
-**When to Use rethrow?**
-
 Use it when:
 
 - You want to log or process the error temporarily
@@ -285,8 +283,6 @@ Future<void> processData(String data) async {
 
 ### 2. Async Error Handling with `try-catch-finally`
 When working with asynchronous code in Dart, error handling works the same way as with synchronous code:
-
-**When to Use finally**
 
 Use it to:
 - Clean up resources (close DB, stop loading indicator)
