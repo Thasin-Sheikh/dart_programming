@@ -64,7 +64,7 @@ AppError (abstract base)
 
 ---
 
-## Why Build a Custom Error Hierarchy?
+## Why we need a Custom Error Hierarchy?
 Creating your own error hierarchy offers several benefits:
 
 - **Granular Type-Safe Handling**  
@@ -81,6 +81,8 @@ Creating your own error hierarchy offers several benefits:
   - More context about what went wrong and why
   - Preserved stack traces and error chains
   - Clear categorization of error sources
+
+Also if you need specific UI behavior based on error type then you should choose Custom Error Hierarchy.
 
 ---
 
@@ -253,12 +255,28 @@ void retry() => print('Retrying operation...');
 
 ---
 
+## Error Types & Responsibilities
+In a real-world mobile application, not all errors should be treated the same way. Some need user feedback, others require silent retries or redirection. Once you've defined a custom error hierarchy, it’s important to know where each error typically occurs and who should handle it — the UI layer, a service, or a global handler.
+
+| **Error Type**       | **Where It Happens**             | **Handled In...**             |
+|----------------------|----------------------------------|-------------------------------|
+| `ConnectionError`    | Network failure                  | UI or error handler           |
+| `TimeoutError`       | Slow or delayed API responses    | Error handler                 |
+| `AuthError`          | Token expired, unauthorized      | Middleware or UI              |
+| `ValidationError`    | Form submission or bad input     | UI (form/controller)          |
+| `DatabaseError`      | Local DB failure (SQLite, Hive)  | Storage service or error handler |
+| `AppError`           | Unexpected app-level failure     | Global error handler          |
+
+
 ## Best Practices
 
 ### 1. Using `rethrow` for Error Propagation
 The rethrow statement is useful when you want to catch an exception, perform some action, but still propagate the exception up the call stack.
+
 **When to Use rethrow?**
+
 Use it when:
+
 - You want to log or process the error temporarily
 - You don’t want to swallow it—just pass it along
 
@@ -275,7 +293,9 @@ Future<void> processData(String data) async {
 
 ### 2. Async Error Handling with `try-catch-finally`
 When working with asynchronous code in Dart, error handling works the same way as with synchronous code:
+
 **When to Use finally**
+
 Use it to:
 - Clean up resources (close DB, stop loading indicator)
 - Execute code regardless of success or error
