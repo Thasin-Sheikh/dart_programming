@@ -149,6 +149,10 @@ class ConnectionError extends NetworkError {
 ```
 ### Domain Specific Errors
 
+**AuthError**:
+When a user is logged out due to token expiration or unauthorized access, a custom AuthError helps identify and handle it cleanly.
+Without it, you’re stuck parsing vague 401s that can crash or silently fail. With AuthError, you can detect the issue, redirect to login, and show a clear message like “Session expired.” It ensures secure, user-friendly auth flow in your app.
+
 ```dart
 class AuthError extends AppError {
   AuthError(String message, {
@@ -156,7 +160,14 @@ class AuthError extends AppError {
     StackTrace stackTrace,
   }) : super(message, code: code ?? 'AUTH_ERROR', stackTrace: stackTrace);
 }
+```
+**DatabaseError**:
+When users submit invalid or incomplete form data, ValidationError helps provide field-specific feedback.
+Without it, you rely on generic exceptions or messy hardcoded messages.
+With ValidationError, you can highlight specific fields, localize messages, and guide users to fix issues easily.
+This leads to a smoother, more intuitive form experience.
 
+```dart
 class DatabaseError extends AppError {
   DatabaseError(String message, {
     String? code,
