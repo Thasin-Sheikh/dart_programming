@@ -10,6 +10,15 @@ In this section, we'll explore how to:
 - Implement effective error handling strategies  
 
 ---
+## Why Error Handling Matters in Mobile Apps
+In mobile apps, the environment is unpredictable: network can drop, data might be malformed, APIs may fail, and user actions can trigger unexpected behavior. If we don’t handle exceptions, the app may crash, display a blank screen, or hang — directly impacting user trust and app reviews.
+
+- **Network Variability**: Users switch between WiFi, cellular data, and offline modes constantly. Network requests can fail due to poor connectivity, timeouts, or server issues.
+  
+- **Resource Constraints**: Mobile devices have limited memory, battery, and processing power. Errors related to resource management need specific handling.
+  
+- **User Experience Expectations**: Mobile users expect instant responses and graceful degradation when services are unavailable.
+Platform-Specific Issues: Different mobile platforms (iOS, Android) may have unique error scenarios that need specialized handling.
 
 ## Understanding Dart's Error Types
 
@@ -94,6 +103,13 @@ abstract class AppError implements Exception {
 ```
 
 ### More Specific Network Error
+Imagine a user trying to fetch data from the server:
+
+- Device is offline → ConnectionError
+
+- API takes too long → TimeoutError
+
+- Server returns 500 → ServerError
 
 ```dart
 class NetworkError extends AppError {
@@ -148,6 +164,7 @@ class DatabaseError extends AppError {
 ```
 
 ### Validation error
+Sometime user can try to submits a form with missing or wrong data. What should you do in this sceneri? You might want to give specific feedback:
 
 ```dart
 class ValidationError extends AppError {
@@ -159,7 +176,9 @@ class ValidationError extends AppError {
   }) : super(message, code: code ?? 'VALIDATION_ERROR', stackTrace: stackTrace);
 }
 ```
-
+This helps you:
+- Highlight exactly which fields are invalid
+- Provide targeted error messages
 ---
 
 
@@ -238,6 +257,10 @@ void retry() => print('Retrying operation...');
 
 ### 1. Using `rethrow` for Error Propagation
 The rethrow statement is useful when you want to catch an exception, perform some action, but still propagate the exception up the call stack.
+**When to Use rethrow?**
+Use it when:
+- You want to log or process the error temporarily
+- You don’t want to swallow it—just pass it along
 
 ```dart
 Future<void> processData(String data) async {
@@ -252,6 +275,10 @@ Future<void> processData(String data) async {
 
 ### 2. Async Error Handling with `try-catch-finally`
 When working with asynchronous code in Dart, error handling works the same way as with synchronous code:
+**When to Use finally**
+Use it to:
+- Clean up resources (close DB, stop loading indicator)
+- Execute code regardless of success or error
 
 ```dart
 Future<void> loadUserData(String userId) async {
